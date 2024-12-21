@@ -30,11 +30,9 @@ const bookingSchema = new mongoose.Schema({
   }],
   pickupDateTime: {
       type: Date,
-      required: true // Consider making this required
   },
   dropDateTime: {
       type: Date,
-      required: true // Consider making this required
   },
   distance: {
       type: Number,
@@ -104,9 +102,7 @@ app.post('/api/bookings', async (req, res) => {
   
 
   function formatPhoneNumber(phone) {
-    // Assuming the phone number is in the format '958935XXXX'
-    // You need to prepend the country code. For example, if it's an Indian number:
-    const countryCode = '+91'; // Change this to your desired country code
+    const countryCode = '+91';
     return `${countryCode}${phone}`;
 }
 
