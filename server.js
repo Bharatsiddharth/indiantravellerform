@@ -38,7 +38,6 @@ const bookingSchema = new mongoose.Schema({
   },
   distance: {
       type: Number,
-      required: true // Consider making this required if distance is always needed
   },
   status: { 
       type: String, 
