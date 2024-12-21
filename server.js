@@ -76,7 +76,7 @@ const Booking = mongoose.model('Booking', bookingSchema);
 // Routes
 // 1. Create Booking
 app.post('/api/bookings', async (req, res) => {
-    const { serviceType, subServiceType, route, pickupDateTime, dropDateTime, contact} = req.body;
+    const { serviceType, subServiceType, route, pickupDateTime, dropDateTime, contact,distance} = req.body;
   
     if (!contact || !contact.name || !contact.email || !contact.phone) {
       return res.status(400).json({ message: 'Contact name, email, and phone are required' });
@@ -89,6 +89,7 @@ app.post('/api/bookings', async (req, res) => {
       pickupDateTime,
       dropDateTime,
       contact,
+      distance
       
     });
   
