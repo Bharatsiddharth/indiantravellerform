@@ -68,7 +68,7 @@ const bookingSchema = new mongoose.Schema({
       },
       driver: {
         name: { type: String, },  
-        phone: { type: String,  match: /^[0-9]{10}$/ }
+        phone: Number
       },
       actionDateTime: Date,
   }
