@@ -2,6 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const emailjs = require('emailjs-com');
+const { body, validationResult } = require('express-validator');
+const client = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 const bodyParser = require('body-parser');
 const cors = require('cors');
 
@@ -102,46 +104,67 @@ app.post('/api/bookings', async (req, res) => {
   });
   
 
+  function formatPhoneNumber(phone) {
+    // Assuming the phone number is in the format '958935XXXX'
+    // You need to prepend the country code. For example, if it's an Indian number:
+    const countryCode = '+91'; // Change this to your desired country code
+    return `${countryCode}${phone}`;
+}
+
 // 2. Admin Action: Confirm or Cancel
-app.put('/api/bookings/:id/action', async (req, res) => {
-  const { action, driver } = req.body;
-  const validActions = ['Confirmed', 'Canceled'];
-
-  // Validate action
-  if (!validActions.includes(action)) {
-    return res.status(400).json({ message: 'Invalid action' });
-  }
-
-  // Validate driver details if action is Confirmed
-  if (action === 'Confirmed') {
-    if (!driver || !driver.name || !driver.phone) {
-      return res.status(400).json({ message: 'Driver name and phone number are required when confirming a booking' });
-    }
-  }
-
-  try {
-    // Update booking with action and driver if provided
-    const updateData = {
-      status: action,
-      adminAction: {
-        action,
-        actionDateTime: new Date(),
-      },
-    };
-
-    if (action === 'Confirmed') {
-      updateData.adminAction.driver = driver;
+app.put('/api/bookings/:id/action', 
+  body('action').isIn(['Confirmed', 'Canceled']).withMessage('Invalid action'),
+  body('driver.name').optional().notEmpty().withMessage('Driver name is required when confirming a booking'),
+  body('driver.phone').optional().isMobilePhone('any').withMessage('Invalid driver phone number format'),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ message: 'Validation failed', errors: errors.array() });
     }
 
-    const booking = await Booking.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    const { action, driver } = req.body;
 
-    if (!booking) {
-      return res.status(404).json({ message: 'Booking not found' });
+    try {
+      // Update booking with action and driver if provided
+      const updateData = {
+        status: action,
+        adminAction: {
+          action,
+          actionDateTime: new Date(),
+        },
+      };
+
+      if (action === 'Confirmed') {
+        updateData.adminAction.driver = driver;
+      }
+
+      const booking = await Booking.findByIdAndUpdate(req.params.id, updateData, { new: true });
+
+      if (!booking) {
+        return res.status(404).json({ message: 'Booking not found' });
+      }
+
+      // Send SMS notification
+      const message = action === 'Confirmed' 
+        ? `Your booking  has been confirmed. Driver: ${driver.name}, Phone: ${driver.phone}.`
+        : `Your booking  has been canceled.`;
+
+      // Assuming the contact information is in the booking document
+      const contact = booking.contact; // Accessing the contact information from the booking
+      if (contact && contact.phone) {
+          const formattedPhone = formatPhoneNumber(contact.phone); // Format the phone number
+          // Send SMS using Twilio
+          await client.messages.create({
+              body: message,
+              from: '+16602239964', // Your Twilio phone number
+              to: formattedPhone, // Using the formatted phone number
+          });
+      }
+
+      res.status(200).json({ message: `Booking ${action}`, booking });
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to update booking', error: error.message });
     }
-    res.status(200).json({ message: `Booking ${action}`, booking });
-  } catch (error) {
-    res.status(500).json({ message: 'Failed to update booking', error: error.message });
-  }
 });
 
 
