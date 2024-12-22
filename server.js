@@ -134,28 +134,28 @@ app.put('/api/bookings/:id/action',
         updateData.adminAction.driver = driver;
       }
 
-      const booking = await Booking.findByIdAndUpdate(req.params.id, updateData, { new: true });
+      // const booking = await Booking.findByIdAndUpdate(req.params.id, updateData, { new: true });
 
-      if (!booking) {
-        return res.status(404).json({ message: 'Booking not found' });
-      }
+      // if (!booking) {
+      //   return res.status(404).json({ message: 'Booking not found' });
+      // }
 
-      // Send SMS notification
-      const message = action === 'Confirmed' 
-        ? `Your booking  has been confirmed. Driver: ${driver.name}, Phone: ${driver.phone}.`
-        : `Your booking  has been canceled.`;
+      // // Send SMS notification
+      // const message = action === 'Confirmed' 
+      //   ? `Your booking  has been confirmed. Driver: ${driver.name}, Phone: ${driver.phone}.`
+      //   : `Your booking  has been canceled.`;
 
-      // Assuming the contact information is in the booking document
-      const contact = booking.contact; // Accessing the contact information from the booking
-      if (contact && contact.phone) {
-          const formattedPhone = formatPhoneNumber(contact.phone); // Format the phone number
-          // Send SMS using Twilio
-          await client.messages.create({
-              body: message,
-              from: '+16602239964', // Your Twilio phone number
-              to: formattedPhone, // Using the formatted phone number
-          });
-      }
+      // // Assuming the contact information is in the booking document
+      // const contact = booking.contact; // Accessing the contact information from the booking
+      // if (contact && contact.phone) {
+      //     const formattedPhone = formatPhoneNumber(contact.phone); // Format the phone number
+      //     // Send SMS using Twilio
+      //     await client.messages.create({
+      //         body: message,
+      //         from: '+16602239964', // Your Twilio phone number
+      //         to: formattedPhone, // Using the formatted phone number
+      //     });
+      // }
 
       res.status(200).json({ message: `Booking ${action}`, booking });
     } catch (error) {
