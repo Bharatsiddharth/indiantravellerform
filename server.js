@@ -134,7 +134,7 @@ app.put('/api/bookings/:id/action',
         updateData.adminAction.driver = driver;
       }
 
-      // const booking = await Booking.findByIdAndUpdate(req.params.id, updateData, { new: true });
+      const booking = await Booking.findByIdAndUpdate(req.params.id, updateData, { new: true });
 
       // if (!booking) {
       //   return res.status(404).json({ message: 'Booking not found' });
