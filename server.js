@@ -119,8 +119,6 @@ app.post('/api/bookings', async (req, res) => {
 app.put('/api/bookings/:id/action', 
   body('action').isIn(['Confirmed', 'Canceled']).withMessage('Invalid action'),
   body('driver.name').optional().notEmpty().withMessage('Driver name is required when confirming a booking'),
-  body('driver.phone').optional().isMobilePhone('any').withMessage('Invalid driver phone number format'),
-  body('driver.photo').optional().isURL().withMessage('Invalid photo URL format'), // Add validation for photo
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -141,24 +139,18 @@ app.put('/api/bookings/:id/action',
 
       if (action === 'Confirmed') {
         updateData.adminAction.driver = driver;
-
-        // Include the photo field if provided
-        if (driver.photo) {
-          updateData.adminAction.driver.photo = driver.photo;
-        }
       }
 
       const booking = await Booking.findByIdAndUpdate(req.params.id, updateData, { new: true });
 
-      // Uncomment the following lines if you want to handle SMS notifications
       // if (!booking) {
       //   return res.status(404).json({ message: 'Booking not found' });
       // }
 
       // // Send SMS notification
       // const message = action === 'Confirmed' 
-      //   ? `Your booking has been confirmed. Driver: ${driver.name}, Phone: ${driver.phone}.`
-      //   : `Your booking has been canceled.`;
+      //   ? `Your booking  has been confirmed. Driver: ${driver.name}, Phone: ${driver.phone}.`
+      //   : `Your booking  has been canceled.`;
 
       // // Assuming the contact information is in the booking document
       // const contact = booking.contact; // Accessing the contact information from the booking
@@ -177,7 +169,6 @@ app.put('/api/bookings/:id/action',
       res.status(500).json({ message: 'Failed to update booking', error: error.message });
     }
 });
-
 
 // 3. Get All Bookings
 app.get('/api/bookings', async (req, res) => {
