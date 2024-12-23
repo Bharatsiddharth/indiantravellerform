@@ -32,7 +32,14 @@ const bookingSchema = new mongoose.Schema({
       type: Date,
   },
   dropDateTime: {
-      type: Date,
+    type: Date,
+    required: true,
+    validate: {
+      validator: function(v) {
+        return v.getTime() !== this.pickupDateTime.getTime();
+      },
+      message: 'Drop date and time must be different from pickup date and time.',
+    },
   },
   distance: {
       type: Number,
@@ -182,6 +189,23 @@ app.get('/api/bookings', async (req, res) => {
     }
   });
   
+
+  app.get('/api/bookings/:id', async (req, res) => {
+    try {
+      const bookingId = req.params.id; // Get the booking ID from the request parameters
+      const booking = await Booking.findById(bookingId); // Find the booking by ID
+  
+      if (!booking) {
+        return res.status(404).json({ message: 'Booking not found' }); // Handle case where booking is not found
+      }
+  
+      res.status(200).json({ message: 'Booking retrieved', booking }); // Return the found booking
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to retrieve booking', error: error.message }); // Handle errors
+    }
+  });
+  
+
   // 4. Delete a Booking
   app.delete('/api/bookings/:id', async (req, res) => {
     try {
