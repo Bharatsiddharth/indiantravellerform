@@ -33,7 +33,6 @@ const bookingSchema = new mongoose.Schema({
   },
   dropDateTime: {
     type: Date,
-    required: true,
     validate: {
       validator: function(v) {
         return v.getTime() !== this.pickupDateTime.getTime();
