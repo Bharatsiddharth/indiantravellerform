@@ -33,12 +33,6 @@ const bookingSchema = new mongoose.Schema({
   },
   dropDateTime: {
     type: Date,
-    validate: {
-      validator: function(v) {
-        return v.getTime() !== this.pickupDateTime.getTime();
-      },
-      message: 'Drop date and time must be different from pickup date and time.',
-    },
   },
   distance: {
       type: Number,
